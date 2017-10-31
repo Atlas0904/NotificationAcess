@@ -1,9 +1,11 @@
 package com.github.chagall.notificationlistenerexample;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.util.Log;
 
 /**
  * MIT License
@@ -26,6 +28,8 @@ import android.service.notification.StatusBarNotification;
  */
 public class NotificationListenerExampleService extends NotificationListenerService {
 
+    public static final String TAG = NotificationListenerExampleService.class.getSimpleName();
+
     /*
         These are the package names of the apps. for which we want to
         listen the notifications
@@ -35,6 +39,7 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         public static final String FACEBOOK_MESSENGER_PACK_NAME = "com.facebook.orca";
         public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
         public static final String INSTAGRAM_PACK_NAME = "com.instagram.android";
+        public static final String LINE_PACK_NAME = "jp.naver.line.android";
     }
 
     /*
@@ -45,20 +50,37 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         public static final int FACEBOOK_CODE = 1;
         public static final int WHATSAPP_CODE = 2;
         public static final int INSTAGRAM_CODE = 3;
-        public static final int OTHER_NOTIFICATIONS_CODE = 4; // We ignore all notification with code == 4
+        public static final int LINE_CODE = 4;
+        public static final int OTHER_NOTIFICATIONS_CODE = 5; // We ignore all notification with code == 4
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
+    public IBinder onBind(Intent intent)
+    {
+        Log.d(TAG, "onBind: intent=" + intent);
         return super.onBind(intent);
     }
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn){
+        Log.d(TAG, "onNotificationPosted: sbn=" + sbn);
+        Log.d(TAG, "onNotificationPosted: notification=" + sbn.getNotification());
+        Log.d(TAG, "onNotificationPosted: tag=" + sbn.getTag());
+        Log.d(TAG, "onNotificationPosted: tickerText=" + sbn.getNotification().tickerText);
+
+        Bundle extras = sbn.getNotification().extras;
+
+        String title = extras.getString("android.title");
+        String text = String.valueOf(extras.getCharSequence("android.text"));
+
+        Log.d(TAG, "onNotificationPosted: title=" + title);
+        Log.d(TAG, "onNotificationPosted: text=" + text);
+        Log.d(TAG, "onNotificationPosted: extra=" + extras);
+
         int notificationCode = matchNotificationCode(sbn);
 
         if(notificationCode != InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE){
-            Intent intent = new  Intent("com.github.chagall.notificationlistenerexample");
+            Intent intent = new Intent("com.github.chagall.notificationlistenerexample");
             intent.putExtra("Notification Code", notificationCode);
             sendBroadcast(intent);
         }
@@ -66,6 +88,8 @@ public class NotificationListenerExampleService extends NotificationListenerServ
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn){
+        Log.d(TAG, "onNotificationRemoved: sbn=" + sbn);
+
         int notificationCode = matchNotificationCode(sbn);
 
         if(notificationCode != InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE) {
@@ -83,9 +107,17 @@ public class NotificationListenerExampleService extends NotificationListenerServ
                 }
             }
         }
+
+
+        Intent intent = new Intent(this, BlockingDialog.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+
+        Log.d(TAG, "onNotificationRemoved: intent=" + intent);
     }
 
     private int matchNotificationCode(StatusBarNotification sbn) {
+
         String packageName = sbn.getPackageName();
 
         if(packageName.equals(ApplicationPackageNames.FACEBOOK_PACK_NAME)
@@ -97,6 +129,9 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         }
         else if(packageName.equals(ApplicationPackageNames.WHATSAPP_PACK_NAME)){
             return(InterceptedNotificationCode.WHATSAPP_CODE);
+        }
+        else if(packageName.equals(ApplicationPackageNames.LINE_PACK_NAME)){
+            return(InterceptedNotificationCode.LINE_CODE);
         }
         else{
             return(InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE);

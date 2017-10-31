@@ -85,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
             case NotificationListenerExampleService.InterceptedNotificationCode.WHATSAPP_CODE:
                 interceptedNotificationImageView.setImageResource(R.drawable.whatsapp_logo);
                 break;
+            case NotificationListenerExampleService.InterceptedNotificationCode.LINE_CODE:
+                interceptedNotificationImageView.setImageResource(R.drawable.line_logo);
+                break;
             case NotificationListenerExampleService.InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE:
                 interceptedNotificationImageView.setImageResource(R.drawable.other_notification_logo);
                 break;
@@ -155,4 +158,5 @@ public class MainActivity extends AppCompatActivity {
                 });
         return(alertDialogBuilder.create());
     }
+
 }
