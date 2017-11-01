@@ -109,8 +109,22 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         }
 
 
+        Bundle extras = sbn.getNotification().extras;
+
+        String title = extras.getString("android.title");
+        String text = String.valueOf(extras.getCharSequence("android.text"));
+
         Intent intent = new Intent(this, BlockingDialog.class);
+
+
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("title", title);
+        intent.putExtra("text", text);
+
+        Log.d(TAG, "onNotificationRemoved: intent=" + intent);
+        Log.d(TAG, "onNotificationRemoved: title=" + title);
+        Log.d(TAG, "onNotificationRemoved: text=" + text);
+
         startActivity(intent);
 
         Log.d(TAG, "onNotificationRemoved: intent=" + intent);
